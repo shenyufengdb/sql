@@ -60,7 +60,7 @@ stack_bottom = 7ef86ecf94f0 thread_stack 0x80000
 Trying to get some variables.
 
 Some pointers may be invalid and cause the dump to abort.
-Query (7ef86cc21030): /*id:b8664009*//*ip=10.194.55.215*/DELETE /*DMS-ARCHIVE:TASK:13088224*/ FROM `wm_charge_detail_680` WHERE `id` > 442174664851 AND `id` <= 442175610690  and ( purge_time=0 and  ctime<1643990400 )
+Query (7ef86cc21030): /*id:b8664009*//*ip=xxxxx*/DELETE /*DMS-ARCHIVE:TASK:13088224*/ FROM `xxxxxx` WHERE `id` > xxxx AND `id` <= xxxxx  and ( purge_time=0 and  ctime<1643990400 )
 Connection ID (thread ID): 10699369
 Status: NOT_KILLED
 You may download the Percona Server operations manual by visiting
