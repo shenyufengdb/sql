@@ -67,3 +67,33 @@ You may download the Percona Server operations manual by visiting
 http://www.percona.com/software/percona-server/. You may find information
 in the manual which will help you identify the cause of the crash.
 Writing a core file
+
+
+
+[xxx@pj-tsp-mysql-xxxxx core]# gdb /usr/sbin/mysqld core-mysqld-148826-1648600213
+...............
+(gdb) bt
+#0  0x00007f1c8fee6aa1 in pthread_kill () from /lib64/libpthread.so.0
+#1  0x0000000000ee5257 in my_write_core (sig=<optimized out>)
+    at /usr/src/debug/mtsql-5.7.26-20000/mtsql-5.7.26-20000/include/my_thread.h:98
+#2  0x00000000007bd39d in handle_fatal_signal (sig=6) at /usr/src/debug/mtsql-5.7.26-20000/mtsql-5.7.26-20000/sql/signal_handler.cc:223
+#3  <signal handler called>
+#4  0x00007f1c8dfe9387 in raise () from /lib64/libc.so.6
+#5  0x00007f1c8dfeaa78 in abort () from /lib64/libc.so.6
+#6  0x0000000000780155 in ut_dbg_assertion_failed (expr=expr@entry=0x0, 
+    at /usr/src/debug/mtsql-5.7.26-20000/mtsql-5.7.26-20000/storage/innobase/ut/ut0dbg.cc:67
+#7  0x00000000007706c3 in rec_get_offsets_func (rec=0x7f14b7f5685d "\316\037;", index=0x7ef696121308, offsets=<optimized out>, 
+    n_fields=<optimized out>, heap=<optimized out>)
+    at /usr/src/debug/mtsql-5.7.26-20000/mtsql-5.7.26-20000/storage/innobase/rem/rem0rec.cc:578
+    
+    
+    
+ (gdb) frame 7
+#7  0x00000000007706c3 in rec_get_offsets_func (rec=0x7f14b7f5685d "\316\037;", index=0x7ef696121308, offsets=<optimized out>, n_fields=<optimized out>, heap=<optimized out>)
+    at /usr/src/debug/mtsql-5.7.26-20000/mtsql-5.7.26-20000/storage/innobase/rem/rem0rec.cc:578
+578				ut_error;
+(gdb) x/1xb 0x7f14b7f5685d      //rec的指针的位置
+0x7f14b7f5685d:	0xce
+(gdb) x/1xb 0x7f14b7f5685a。   //rec的指针-3字节，得到rec类型的位置
+0x7f14b7f5685a:	0x1f   
+(gdb)
