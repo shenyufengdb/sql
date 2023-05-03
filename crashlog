@@ -1,29 +1,69 @@
-[root@xxxxxx core]# gdb /usr/sbin/mysqld core-mysqld-148826-1648600213
+ 2022-04-01 02:41:39 0x7ef86ecfb700  InnoDB: Assertion failure in thread 139605476095744 in file rem0rec.cc line 578
+InnoDB: We intentionally generate a memory trap.
+InnoDB: Submit a detailed bug report to http://bugs.mysql.com.
+InnoDB: If you get repeated assertion failures or crashes, even
+InnoDB: immediately after the mysqld startup, there may be
+InnoDB: corruption in the InnoDB tablespace. Please refer to
+InnoDB: http://dev.mysql.com/doc/refman/5.7/en/forcing-innodb-recovery.html
+InnoDB: about forcing recovery.
+18:41:39 UTC - mysqld got signal 6 ;
+This could be because you hit a bug. It is also possible that this binary
+or one of the libraries it was linked against is corrupt, improperly built,
+or misconfigured. This error can also be caused by malfunctioning hardware.
 
-...............
+Attempting to collect some information that could help diagnose the problem.
+As this is a crash and something is definitely wrong, the information
+collection process might fail.
+Please help us make Percona Server better by reporting any
+bugs at https://bugs.percona.com/
+key_buffer_size=33554432
+read_buffer_size=131072
+max_used_connections=590
+max_threads=10010
+thread_count=229
+connection_count=229
+It is possible that mysqld could use up to
+key_buffer_size + (read_buffer_size + sort_buffer_size)*max_threads = 83374628 K  bytes of memory
+Hope that's ok; if not, decrease some variables in the equation.
+Thread pointer: 0x7ef86cc05d80
+Attempting backtrace. You can use the following information to find out
+where mysqld died. If you see no messages after this, something went
+terribly wrong...
 
-(gdb) bt
+stack_bottom = 7ef86ecf94f0 thread_stack 0x80000
+/usr/sbin/mysqld(my_print_stacktrace+0x3b)[0xf1444b]
+/usr/sbin/mysqld(handle_fatal_signal+0x471)[0xd4e981]
+/lib64/libpthread.so.0(+0xf630)[0x7f1ec657a630]
+/lib64/libc.so.6(gsignal+0x37)[0x7f1ec467a387]
+/usr/sbin/mysqld[0x77bd20]
+/usr/sbin/mysqld(_Z20rec_get_offsets_funcPKhPK12dict_index_tPmmPP16mem_block_info_t+0x56)[0x106b2f6]
+/usr/sbin/mysqld(_Z15row_search_mvccPh15page_cur_mode_tP14row_prebuilt_tmm+0x3528)[0x10cd628]
+/usr/sbin/mysqld(_ZN11ha_innobase10index_readEPhPKhj16ha_rkey_function+0x316)[0xfa7446]
+/usr/sbin/mysqld(_ZN7handler17ha_index_read_mapEPhPKhm16ha_rkey_function+0x1cd)[0x7b565d]
+/usr/sbin/mysqld(_ZN7handler16read_range_firstEPK12st_key_rangeS2_bb+0x5c)[0x7b5e8c]
+/usr/sbin/mysqld(_ZN7handler21multi_range_read_nextEPPc+0x99)[0x7a8c99]
+/usr/sbin/mysqld(_ZN18QUICK_RANGE_SELECT8get_nextEv+0x5a)[0xe0667a]
+/usr/sbin/mysqld[0xbd04ba]
+/usr/sbin/mysqld(_ZN14Sql_cmd_delete12mysql_deleteEP3THDy+0x10ae)[0xe4125e]
+/usr/sbin/mysqld(_ZN14Sql_cmd_delete7executeEP3THD+0xdf)[0xe41a7f]
+/usr/sbin/mysqld(_Z21mysql_execute_commandP3THDb+0x253d)[0xc6cf0d]
+/usr/sbin/mysqld(_ZN18Prepared_statement7executeEP6Stringb+0x357)[0xc9b567]
+/usr/sbin/mysqld(_ZN18Prepared_statement12execute_loopEP6StringbPhS2_+0xda)[0xc9e63a]
+/usr/sbin/mysqld(_Z19mysqld_stmt_executeP3THDmmPhm+0xf7)[0xc9e937]
+/usr/sbin/mysqld(_Z16dispatch_commandP3THDPK8COM_DATA19enum_server_command+0x1a64)[0xc73e84]
+/usr/sbin/mysqld(_Z10do_commandP3THD+0x1df)[0xc749ef]
+/usr/sbin/mysqld(handle_connection+0x2c0)[0xd35500]
+/usr/sbin/mysqld(pfs_spawn_thread+0x1b4)[0xf2c6b4]
+/lib64/libpthread.so.0(+0x7ea5)[0x7f1ec6572ea5]
+/lib64/libc.so.6(clone+0x6d)[0x7f1ec47429fd]
 
-#0  0x00007f1c8fee6aa1 in pthread_kill () from /lib64/libpthread.so.0
+Trying to get some variables.
 
-#1  0x0000000000ee5257 in my_write_core (sig=<optimized out>)
-
-    at /usr/src/debug/mtsql-5.7.26-20000/mtsql-5.7.26-20000/include/my_thread.h:98
-
-#2  0x00000000007bd39d in handle_fatal_signal (sig=6) at /usr/src/debug/xxx-5.7.26-20000/mtsql-5.7.26-20000/sql/signal_handler.cc:223
-
-#3  <signal handler called>
-
-#4  0x00007f1c8dfe9387 in raise () from /lib64/libc.so.6
-
-#5  0x00007f1c8dfeaa78 in abort () from /lib64/libc.so.6
-
-#6  0x0000000000780155 in ut_dbg_assertion_failed (expr=expr@entry=0x0, 
-
-    at /usr/src/debug/mtsql-5.7.26-20000/xxx-5.7.26-20000/storage/innobase/ut/ut0dbg.cc:67
-
-#7  0x00000000007706c3 in rec_get_offsets_func (rec=0x7f14b7f5685d "\316\037;", index=0x7ef696121308, offsets=<optimized out>, 
-
-    n_fields=<optimized out>, heap=<optimized out>)
-
-    at /usr/src/debug/xxx-5.7.26-20000/xxx-5.7.26-20000/storage/innobase/rem/rem0rec.cc:578
+Some pointers may be invalid and cause the dump to abort.
+Query (7ef86cc21030): /*id:b8664009*//*ip=10.194.55.215*/DELETE /*DMS-ARCHIVE:TASK:13088224*/ FROM `wm_charge_detail_680` WHERE `id` > 442174664851 AND `id` <= 442175610690  and ( purge_time=0 and  ctime<1643990400 )
+Connection ID (thread ID): 10699369
+Status: NOT_KILLED
+You may download the Percona Server operations manual by visiting
+http://www.percona.com/software/percona-server/. You may find information
+in the manual which will help you identify the cause of the crash.
+Writing a core file
