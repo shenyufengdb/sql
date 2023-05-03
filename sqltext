@@ -1,0 +1,32 @@
+ (gdb) bt
+ thread #29, stop reason = signal SIGSTOP
+    frame #0: 0x00007fff6f193882 libsystem_kernel.dylib`__psynch_cvwait + 10
+    frame #1: 0x00007fff6f254425 libsystem_pthread.dylib`_pthread_cond_wait + 698
+    frame #2: 0x0000000109fa0f35 mysqld`native_cond_timedwait(cond=0x00007000051db060, mutex=0x000000010b255270, abstime=0x00007000051daf40) at thr_cond.h:136:10
+    frame #3: 0x0000000109fa0e1a mysqld`safe_cond_timedwait(cond=0x00007000051db060, mp=0x000000010b255230, abstime=0x00007000051daf40, file="/Users/shenyufeng/Desktop/percona-server-5.7.x/sql/item_func.cc", line=5269) at thr_cond.c:100:10
+    frame #4: 0x0000000109485125 mysqld`my_cond_timedwait(cond=0x00007000051db060, mp=0x000000010b255230, abstime=0x00007000051daf40, file="/Users/shenyufeng/Desktop/percona-server-5.7.x/sql/item_func.cc", line=5269) at thr_cond.h:187:10
+    frame #5: 0x0000000109473031 mysqld`inline_mysql_cond_timedwait(that=0x00007000051db060, mutex=0x000000010b255230, abstime=0x00007000051daf40, src_file="/Users/shenyufeng/Desktop/percona-server-5.7.x/sql/item_func.cc", src_line=5269) at mysql_thread.h:1232:13
+    frame #6: 0x0000000109472e00 mysqld`Interruptible_wait::wait(this=0x00007000051db030, cond=0x00007000051db060, mutex=0x000000010b255230) at item_func.cc:5269:12
+    frame #7: 0x0000000109475823 mysqld`Item_func_sleep::val_int(this=0x00007fd14688bb20) at item_func.cc:6072:23
+    frame #8: 0x00000001093e086a mysqld`Item::send(this=0x00007fd14688bb20, protocol=0x00007fd14687b450, buffer=0x00007000051db278) at item.cc:7577:9
+    frame #9: 0x0000000109bc5ebe mysqld`THD::send_result_set_row(this=0x00007fd14687a000, row_items=0x00007fd14688a7f8) at sql_class.cc:5056:15
+    frame #10: 0x0000000109bc5ccc mysqld`Query_result_send::send_data(this=0x00007fd14688c5c8, items=0x00007fd14688a7f8) at sql_class.cc:2934:12
+    frame #11: 0x0000000109bf318a mysqld`end_send(join=0x00007fd146397810, qep_tab=0x0000000000000000, end_of_records=false) at sql_executor.cc:2946:48
+    frame #12: 0x0000000109befdac mysqld`do_select(join=0x00007fd146397810) at sql_executor.cc:902:14
+    frame #13: 0x0000000109bef996 mysqld`JOIN::exec(this=0x00007fd146397810) at sql_executor.cc:206:10
+    frame #14: 0x0000000109cd3f83 mysqld`handle_query(thd=0x00007fd14687a000, lex=0x00007fd14687c848, result=0x00007fd14688c5c8, added_options=0, removed_options=0) at sql_select.cc:192:21
+    frame #15: 0x0000000109c71931 mysqld`execute_sqlcom_select(thd=0x00007fd14687a000, all_tables=0x00007fd14688bd58) at sql_parse.cc:5490:12
+    frame #16: 0x0000000109c66c54 mysqld`mysql_execute_command(thd=0x00007fd14687a000, first_level=true) at sql_parse.cc:3016:12
+    frame #17: 0x0000000109c64050 mysqld`mysql_parse(thd=0x00007fd14687a000, parser_state=0x00007000051df340, update_userstat=false) at sql_parse.cc:5927:20
+    frame #18: 0x0000000109c60fa2 mysqld`dispatch_command(thd=0x00007fd14687a000, com_data=0x00007000051dfe48, command=COM_QUERY) at sql_parse.cc:1539:5
+    frame #19: 0x0000000109c63167 mysqld`do_command(thd=0x00007fd14687a000) at sql_parse.cc:1060:17
+    frame #20: 0x0000000109e0803b mysqld`::handle_connection(arg=0x00007fd145d868f0) at connection_handler_per_thread.cc:325:13
+    frame #21: 0x000000010a189d3c mysqld`::pfs_spawn_thread(arg=0x00007fd145d87400) at pfs.cc:2198:3
+    frame #22: 0x00007fff6f254109 libsystem_pthread.dylib`_pthread_start + 148
+    frame #23: 0x00007fff6f24fb8b libsystem_pthread.dylib`thread_start + 15
+
+frame 7
+    
+ 打印SQL语句
+ p this->thd->m_query_string.str   //这里的this微stmt
+ 找到结果(const char *) $0 = 0x00007fd14688a630 "select   sleep(100),id from sync_test where id =123\nLIMIT 0, 1000"
