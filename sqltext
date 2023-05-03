@@ -1,5 +1,58 @@
- (gdb) bt
- thread #29, stop reason = signal SIGSTOP
+当发生Crash时候，我们一般想到的第一个问题是哪个SQL语句造成等等crash，好方便复现 。
+
+1）创建运行长时间的SQL
+
+use replication_test;
+select   sleep(100),id from sync_test where id =123;
+
+2）kill -6 MySQL PID 生产MySQL Core Dump   ||  sudo gcore mysql_pid  
+
+This could be because you hit a bug. It is also possible that this binary
+or one of the libraries it was linked against is corrupt, improperly built,
+or misconfigured. This error can also be caused by malfunctioning hardware.
+Attempting to collect some information that could help diagnose the problem.
+As this is a crash and something is definitely wrong, the information
+collection process might fail.
+Please help us make Percona Server better by reporting any
+bugs at https://bugs.percona.com/
+
+key_buffer_size=8388608
+read_buffer_size=131072
+max_used_connections=0
+max_threads=152
+thread_count=0
+connection_count=0
+It is possible that mysqld could use up to 
+key_buffer_size + (read_buffer_size + sort_buffer_size)*max_threads = 68460 K  bytes of memory
+Hope that's ok; if not, decrease some variables in the equation.
+
+Thread pointer: 0x0
+Attempting backtrace. You can use the following information to find out
+where mysqld died. If you see no messages after this, something went
+terribly wrong...
+stack_bottom = 0 thread_stack 0x40000
+0   mysqld                              0x000000010744f1a6 my_print_stacktrace + 70
+1   mysqld                              0x00000001072fd379 handle_fatal_signal + 937
+2   libsystem_platform.dylib            0x00007fff6e07f5fd _sigtramp + 29
+3   ???                                 0x000000000000ffff 0x0 + 65535
+4   mysqld                              0x00000001072e868e _ZN19Connection_acceptorI22Mysqld_socket_listenerE21connection_event_loopEv + 62
+5   mysqld                              0x00000001072e3eb6 _Z11mysqld_mainiPPc + 5942
+6   mysqld                              0x00000001067291c2 main + 34
+7   libdyld.dylib                       0x00007fff6de86cc9 start + 1
+8   ???                                 0x0000000000000003 0x0 + 3
+You may download the Percona Server operations manual by visiting
+http://www.percona.com/software/percona-server/. You may find information
+in the manual which will help you identify the cause of the crash.
+Writing a core file
+
+
+3）加载Core dump文件
+
+lldb -c core.xxx
+
+4）通过 bt all，看一下所有线程的堆栈，我们发现thread #29的堆栈如下，
+
+  thread #29, stop reason = signal SIGSTOP
     frame #0: 0x00007fff6f193882 libsystem_kernel.dylib`__psynch_cvwait + 10
     frame #1: 0x00007fff6f254425 libsystem_pthread.dylib`_pthread_cond_wait + 698
     frame #2: 0x0000000109fa0f35 mysqld`native_cond_timedwait(cond=0x00007000051db060, mutex=0x000000010b255270, abstime=0x00007000051daf40) at thr_cond.h:136:10
@@ -25,8 +78,28 @@
     frame #22: 0x00007fff6f254109 libsystem_pthread.dylib`_pthread_start + 148
     frame #23: 0x00007fff6f24fb8b libsystem_pthread.dylib`thread_start + 15
 
-frame 7
-    
- 打印SQL语句
+5）看上去我们要找的SQL对应的线程为29 ，切换到  thread select 29
+
+6）根据经验我们要找的SQL在frame13，所以 切换到 frame select 13
+
+(lldb) fr v
+(JOIN *) this = 0x00007fd146397810
+(Opt_trace_context *const) trace = 0x00007fd14687c830
+(Opt_trace_object) trace_wrapper = {
+  Opt_trace_struct = {
+    started = false
+    requires_key = true
+    has_disabled_I_S = true
+    empty = true
+    stmt = 0x000000010ae5838f
+    saved_key = 0x000000010ae5839c "/Users/shenyufeng/Desktop/percona-server-5.7.x/sql/sql_select.cc"
+    previous_key = "\x06"
+  }
+}
+
+
+7）打印SQL语句
+
  p this->thd->m_query_string.str   //这里的this微stmt
- 找到结果(const char *) $0 = 0x00007fd14688a630 "select   sleep(100),id from sync_test where id =123\nLIMIT 0, 1000"
+
+找到结果(const char *) $0 = 0x00007fd14688a630 "select   sleep(100),id from sync_test where id =123\nLIMIT 0, 1000"
